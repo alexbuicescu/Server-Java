@@ -76,10 +76,52 @@ public class Server extends Thread
 					e.printStackTrace();
 				}
 	            
+	            String sendMessageString = "";
 	            try {
 	
 					String read = input.readLine();
 					System.out.println("am citit: " + read);
+					
+					if(read.length() > 0)
+					{
+						String[] elements = read.split(" ");
+						
+						if(read.charAt(0) == '0')
+						{
+							sendMessageString = getListOfEvents(elements[1]);
+						}
+						else
+							if(read.charAt(0) == '1')
+							{
+								sendMessageString = getListOfMyFriends(elements[1]);
+							}
+							else
+								if(read.charAt(0) == '2')
+								{
+									String eventID = elements[1];
+									
+									sendMessageString = getListOfPeopleGoingToEvent(eventID);
+								}
+								else
+									if(read.charAt(0) == '3')
+									{
+										String eventID = elements[1];
+										
+										sendMessageString = getListOfCompaniesGoingToEvent(eventID);
+									}
+
+									else
+										if(read.charAt(0) == '4')
+										{
+											String myEmail = elements[1];
+											
+											sendMessageString = getMyCredentials(myEmail);
+										}
+										else
+										{
+											sendMessageString = "nu am gasit nimic";
+										}
+					}
 					
 					ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + 
 											"Client #" + clientNumber + ": " + read + '\n');
@@ -88,7 +130,7 @@ public class Server extends Thread
 					e.printStackTrace();
 				}
 	            
-	            sendMessage("Connection successful");
+	            sendMessage(sendMessageString);
 	        }
 	        finally{
 	        	try {
@@ -121,5 +163,30 @@ public class Server extends Thread
     		out.println(msg);
             
         }
+    	
+    	String getListOfEvents(String myID)
+    	{
+    		return null;
+    	}
+
+    	String getListOfMyFriends(String myID)
+    	{
+    		return null;
+    	}
+
+    	String getListOfPeopleGoingToEvent(String eventID)
+    	{
+    		return null;
+    	}
+
+    	String getListOfCompaniesGoingToEvent(String eventID)
+    	{
+    		return null;
+    	}
+
+    	String getMyCredentials(String myEmail)
+    	{
+    		return null;
+    	}
     }
 }
