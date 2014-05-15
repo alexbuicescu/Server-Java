@@ -2,14 +2,17 @@ import java.io.*;
 import java.net.*;
 public class Server extends Thread
 {
+	private int clientNumber = 0;
     String message;
     boolean initServer = false;
-    int serverPort = 2006;
+    boolean stop = false;
+    private int serverPort;
     ServerSocket providerSocket;
-    Server()
+    Server(int _serverPort)
     {
     	try {
-			providerSocket = new ServerSocket(serverPort);
+    		serverPort = _serverPort;
+			providerSocket = new ServerSocket(_serverPort);
 			initServer = true;
 		} catch (IOException e) {
 			System.err.println("Eroare la initializare server socket");
@@ -20,7 +23,7 @@ public class Server extends Thread
 	
     public void run()
     {
-    	while(true)
+    	while(!stop)
     	{
     		if(initServer == true)
 	        {
@@ -29,9 +32,10 @@ public class Server extends Thread
 					//providerSocket = new ServerSocket(serverPort);
 					Socket connection = providerSocket.accept();
 		            System.out.println("Am gasit conexiune");
-					ClientConnection cc = new ClientConnection(providerSocket, connection);
+					ClientConnection cc = new ClientConnection(providerSocket, connection, clientNumber);
 					Thread th = new Thread(cc);
 					th.start();
+					clientNumber++;
 					//new Thread(new ClientConnection(connection)).start();
 					
 				} catch (IOException e) {
@@ -47,11 +51,13 @@ public class Server extends Thread
     	private BufferedReader input;
     	private Socket mConnection;
     	private ServerSocket mServerSocket;
+    	private int clientNumber;
     	
-    	public ClientConnection(ServerSocket providerSocket, Socket connection)
+    	public ClientConnection(ServerSocket providerSocket, Socket connection, int clientNumber)
     	{
     		mConnection = connection;
     		mServerSocket = providerSocket;
+    		this.clientNumber = clientNumber;
     	}
     	
     	public void run()
@@ -74,6 +80,9 @@ public class Server extends Thread
 	
 					String read = input.readLine();
 					System.out.println("am citit: " + read);
+					
+					ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + 
+											"Client #" + clientNumber + ": " + read + '\n');
 	
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -100,6 +109,8 @@ public class Server extends Thread
     	
     	void sendMessage(String msg)
         {
+    		String serverName = "Server to Client #" + clientNumber + ": " + msg + '\n';
+    		ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + serverName);
     		PrintWriter out = null;
     		try {
     			out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(mConnection.getOutputStream())), true);
