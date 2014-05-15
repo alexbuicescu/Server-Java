@@ -1,0 +1,5 @@
+0 alex@buicescu.com parola Buicescu Alexandru Facebook programmer 0123456
+1 florina@petre.com parola Petre Florina Facebook developer 1234567
+2 bogdan@ghimis.com parola Ghimis Bogdan Microsoft janitor 2345678
+3 mark@zuckerberg.com parola Mark Zuckerberg Google CEO 3456789
+4 ion@popescu.com parola Ion Popescu Nowhere broker 4567890
