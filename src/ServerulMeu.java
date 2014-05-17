@@ -45,6 +45,7 @@ public class ServerulMeu {
 		    		//System.err.println(Server.readFile("Events/events.txt"));
 		    		
 					serverIPAddressLabel.setText(InetAddress.getLocalHost().getHostAddress());
+
 					//serverPortTextField.setText(String.valueOf(mServer.serverPort));
 					
 					
