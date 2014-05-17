@@ -55,6 +55,7 @@ public class Server extends Thread
     	
     	public ClientConnection(ServerSocket providerSocket, Socket connection, int clientNumber)
     	{
+    		
     		mConnection = connection;
     		mServerSocket = providerSocket;
     		this.clientNumber = clientNumber;
@@ -93,7 +94,7 @@ public class Server extends Thread
 						else
 							if(read.charAt(0) == '1')
 							{
-								sendMessageString = getListOfMyFriends(elements[1]);
+								sendMessageString = getListOfMyFriends();
 							}
 							else
 								if(read.charAt(0) == '2')
@@ -169,9 +170,9 @@ public class Server extends Thread
     		return null;
     	}
 
-    	String getListOfMyFriends(String myID)
+    	String getListOfMyFriends()
     	{
-    		return null;
+    		return readFile("Events/events.txt");
     	}
 
     	String getListOfPeopleGoingToEvent(String eventID)
@@ -188,5 +189,31 @@ public class Server extends Thread
     	{
     		return null;
     	}
+    }
+    
+    public static String readFile(String fileName)
+    {
+    	BufferedReader reader = null;
+		try 
+		{
+			reader = new BufferedReader(new FileReader(fileName));
+		} 
+		catch (FileNotFoundException e) 
+		{
+			e.printStackTrace();
+		}
+    	String line = null;
+    	String fullText = "";
+    	try 
+    	{
+			while ((line = reader.readLine()) != null) 
+			{
+				fullText += line + '\n';
+			}
+		} 
+    	catch (IOException e) {
+			e.printStackTrace();
+		}
+    	return fullText;
     }
 }
