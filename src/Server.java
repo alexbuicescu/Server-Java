@@ -1,14 +1,18 @@
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Server extends Thread
 {
-	private int clientNumber = 0;
+	private static int clientNumber = 0;
 	String message;
 	boolean initServer = false;
 	boolean stop = false;
 	private int serverPort;
 	ServerSocket providerSocket;
+	private static ClientConnection[] client;
+	private static HashMap clientIDS = new HashMap();
 
 	Server(int _serverPort)
 	{
@@ -37,6 +41,19 @@ public class Server extends Thread
 			ioException.printStackTrace();
 		}
 	}
+	
+	public static void sendCardToAnoterClient(String clientID)
+	{
+		
+		for(int i = 0; i < clientNumber; i++)
+		{
+			if(client[i].getClientID().equals(clientID) == true)
+			{
+				client[i].sendMessage("");
+				return;
+			}
+		}
+	}
 
 	public void run()
 	{
@@ -50,9 +67,10 @@ public class Server extends Thread
 					// providerSocket = new ServerSocket(serverPort);
 					Socket connection = providerSocket.accept();
 					System.out.println("Am gasit conexiune");
-					ClientConnection cc = new ClientConnection(providerSocket, connection, clientNumber);
-					Thread th = new Thread(cc);
-					th.start();
+					client[clientNumber] = new ClientConnection(providerSocket, connection, clientNumber);
+					//Thread th = new Thread(cc);
+					
+					client[clientNumber].start();
 					clientNumber++;
 					// new Thread(new ClientConnection(connection)).start();
 
@@ -66,12 +84,13 @@ public class Server extends Thread
 		}
 	}
 
-	class ClientConnection implements Runnable
+	class ClientConnection extends Thread //implements Runnable
 	{
 		private BufferedReader input = null;
 		private Socket mConnection;
 		private ServerSocket mServerSocket;
 		private int clientNumber;
+		private String clientID = "";
 
 		public ClientConnection(ServerSocket providerSocket, Socket connection, int clientNumber)
 		{
@@ -82,24 +101,25 @@ public class Server extends Thread
 
 		public void run()
 		{
-			try
-			{
+//			try
+//			{
 				try
 				{
 					// this.input = new BufferedReader(new
 					// InputStreamReader(mConnection.getInputStream()));
 					while ((this.input = new BufferedReader(new InputStreamReader(mConnection.getInputStream()))) != null)
 					{
-						String sendMessageString = "nu am gasit nimic";
 						try
 						{
 
 							String read = input.readLine();
-							System.out.println("am citit: " + read);
-							ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + "Client #" + clientNumber + ": " + read + '\n');
 
-							if (read.length() > 0)
+							if (read != null && read.length() > 0 && read.equals("null") == false)
 							{
+								String sendMessageString = "nu am gasit nimic";
+								
+								System.out.println("am citit: " + read);
+								ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + "Client #" + clientNumber + ": " + read + '\n');
 								if (read.equals("stop") == true)
 								{
 									try
@@ -114,7 +134,7 @@ public class Server extends Thread
 									return;
 								}
 								String[] elements = read.split(" ");
-
+								
 								if (read.charAt(0) == '0')
 								{
 									sendMessageString = getListOfEvents(elements[1]);
@@ -153,6 +173,19 @@ public class Server extends Thread
 										sendMessageString = logMeIn(myEmail, myPassword);
 									}
 								}
+								if (read.charAt(0) == '9' && elements.length > 1)
+								{
+									clientID = elements[1];
+									clientIDS.put(clientID, new Integer(clientNumber));
+									
+									sendMessageString = "am primit id-ul";
+								}
+								else
+								if (read.charAt(0) == '8' && elements.length > 1)
+								{
+									sendMessageString = "trebuie sa trimit cartea de vizita catre: " + elements[1];
+								}
+								sendMessage(sendMessageString);
 							}
 
 						}
@@ -161,7 +194,6 @@ public class Server extends Thread
 							e.printStackTrace();
 						}
 
-						sendMessage(sendMessageString);
 
 						// try {
 						//
@@ -179,8 +211,8 @@ public class Server extends Thread
 					e.printStackTrace();
 				}
 
-			}
-			finally
+			//}
+			//finally
 			{
 				try
 				{
@@ -192,6 +224,11 @@ public class Server extends Thread
 					e.printStackTrace();
 				}
 			}
+		}
+		
+		public String getClientID()
+		{
+			return clientID;
 		}
 
 		void sendMessage(String msg)
