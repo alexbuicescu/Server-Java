@@ -1,8 +1,13 @@
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.WritableRaster;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 public class Server extends Thread
 {
@@ -42,13 +47,13 @@ public class Server extends Thread
 			ioException.printStackTrace();
 		}
 	}
-	
+
 	private void sendCardToAnoterClient(String clientID, String myCard)
 	{
-		if(clientIDS.get(clientID) != null)
+		if (clientIDS.get(clientID) != null)
 		{
 			int id = Integer.parseInt(String.valueOf(clientIDS.get(clientID)));
-			client.get(id).sendMessage(myCard);	
+			client.get(id).sendMessage(myCard);
 		}
 	}
 
@@ -64,13 +69,13 @@ public class Server extends Thread
 					// providerSocket = new ServerSocket(serverPort);
 					Socket connection = providerSocket.accept();
 					System.out.println("Am gasit conexiune");
-					
+
 					ClientConnection cc = new ClientConnection(providerSocket, connection, clientNumber);
 					cc.start();
-					
+
 					client.add(cc);
-					//Thread th = new Thread(cc);
-					
+					// Thread th = new Thread(cc);
+
 					clientNumber++;
 					// new Thread(new ClientConnection(connection)).start();
 
@@ -84,7 +89,7 @@ public class Server extends Thread
 		}
 	}
 
-	class ClientConnection extends Thread //implements Runnable
+	class ClientConnection extends Thread // implements Runnable
 	{
 		private BufferedReader input = null;
 		private Socket mConnection;
@@ -101,144 +106,140 @@ public class Server extends Thread
 
 		public void run()
 		{
-//			try
-//			{
-				try
+			// try
+			// {
+			try
+			{
+				// this.input = new BufferedReader(new
+				// InputStreamReader(mConnection.getInputStream()));
+				while ((this.input = new BufferedReader(new InputStreamReader(mConnection.getInputStream()))) != null)
 				{
-					// this.input = new BufferedReader(new
-					// InputStreamReader(mConnection.getInputStream()));
-					while ((this.input = new BufferedReader(new InputStreamReader(mConnection.getInputStream()))) != null)
+					try
 					{
-						try
+						String read = "";
+						// try
+						// {
+						read = input.readLine();
+						// }
+						// catch(Exception ex)
+						// {
+						// continue;
+						// }
+
+						if (read != null && read.length() > 0 && read.equals("null") == false)
 						{
-							String read = "";
-//							try
-//							{
-								read = input.readLine();
-//							}
-//							catch(Exception ex)
-//							{
-//								continue;
-//							}
+							String sendMessageString = "nu am gasit nimic";
 
-							if (read != null && read.length() > 0 && read.equals("null") == false)
+							System.out.println("am citit: " + read);
+							ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + "Client #" + mCurrentClientNumber + ": " + read + '\n');
+							if (read.equals("stop") == true)
 							{
-								String sendMessageString = "nu am gasit nimic";
-								
-								System.out.println("am citit: " + read);
-								ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + "Client #" + mCurrentClientNumber + ": " + read + '\n');
-								if (read.equals("stop") == true)
+								try
 								{
-									try
-									{
-										mConnection.close();
-									}
-									catch (IOException e)
-									{
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
-									return;
+									mConnection.close();
 								}
-								String[] elements = read.split(" ");
-								
-								if (read.charAt(0) == '0')
+								catch (IOException e)
 								{
-									sendMessageString = getListOfEvents(elements[1]);
+									// TODO Auto-generated catch block
+									e.printStackTrace();
 								}
-								else if (read.charAt(0) == '1')
-								{
-									String myID = elements[1];
+								return;
+							}
+							String[] elements = read.split(" ");
 
-									sendMessageString = getListOfMyFriends(myID);
-								}
-								else if (read.charAt(0) == '2')
-								{
-									String eventID = elements[1];
+							if (read.charAt(0) == '0')
+							{
+								sendMessageString = getListOfEvents(elements[1]);
+							}
+							else if (read.charAt(0) == '1')
+							{
+								String myID = elements[1];
 
-									sendMessageString = getListOfPeopleGoingToEvent(eventID);
-								}
-								else if (read.charAt(0) == '3')
-								{
-									String eventID = elements[1];
+								sendMessageString = getListOfMyFriends(myID);
+							}
+							else if (read.charAt(0) == '2')
+							{
+								String eventID = elements[1];
 
-									sendMessageString = getListOfCompaniesGoingToEvent(eventID);
-								}
-								else if (read.charAt(0) == '4')
+								sendMessageString = getListOfPeopleGoingToEvent(eventID);
+							}
+							else if (read.charAt(0) == '3')
+							{
+								String eventID = elements[1];
+
+								sendMessageString = getListOfCompaniesGoingToEvent(eventID);
+							}
+							else if (read.charAt(0) == '4')
+							{
+								String myEmail = elements[1];
+
+								sendMessageString = getMyCredentials(myEmail);
+							}
+							else if (read.charAt(0) == '5')
+							{
+								if (elements.length > 2)
 								{
 									String myEmail = elements[1];
+									String myPassword = elements[2];
 
-									sendMessageString = getMyCredentials(myEmail);
+									sendMessageString = logMeIn(myEmail, myPassword);
 								}
-								else if (read.charAt(0) == '5')
-								{
-									if (elements.length > 2)
-									{
-										String myEmail = elements[1];
-										String myPassword = elements[2];
-
-										sendMessageString = logMeIn(myEmail, myPassword);
-									}
-								}
-								else
-								if (read.charAt(0) == 'c' && elements.length > 1)
-								{
-									sendMessageString = "trebuie sa scriu cartea de vizita de la: " + elements[1];
-									sendCardToAnoterClient(mCurrentClientID, read);
-									setConection(mCurrentClientID, elements[1]);
-								}
-								else
-								if (read.charAt(0) == '8' && elements.length > 1)
-								{
-									sendMessageString = "trebuie sa trimit cartea de vizita catre: " + elements[1];
-									sendCardToAnoterClient(elements[1], "card " + getMyCredentials(mCurrentClientID));
-									setConection(elements[1], mCurrentClientID);
-								}
-								else
-								if (read.charAt(0) == '9' && elements.length > 1)
-								{
-									mCurrentClientID = elements[1];
-									clientIDS.put(mCurrentClientID, new Integer(mCurrentClientNumber));
-									
-									sendMessageString = "am primit id-ul";
-								}
-								sendMessage(sendMessageString);
 							}
-
-							try
+							else if (read.charAt(0) == 'c' && elements.length > 1)
 							{
-								Thread.sleep(100);
+								sendMessageString = "trebuie sa scriu cartea de vizita de la: " + elements[1];
+								sendCardToAnoterClient(mCurrentClientID, read);
+								setConection(mCurrentClientID, elements[1]);
 							}
-							catch (InterruptedException e1)
+							else if (read.charAt(0) == '8' && elements.length > 1)
 							{
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
+								sendMessageString = "trebuie sa trimit cartea de vizita catre: " + elements[1];
+								sendCardToAnoterClient(elements[1], "card " + getMyCredentials(mCurrentClientID));
+								setConection(elements[1], mCurrentClientID);
 							}
+							else if (read.charAt(0) == '9' && elements.length > 1)
+							{
+								mCurrentClientID = elements[1];
+								clientIDS.put(mCurrentClientID, new Integer(mCurrentClientNumber));
+
+								sendMessageString = "am primit id-ul";
+							}
+							sendMessage(sendMessageString);
 						}
-						catch (IOException e)
+
+						try
 						{
-							e.printStackTrace();
+							Thread.sleep(100);
 						}
-
-
-						// try {
-						//
-						// this.input = new BufferedReader(new
-						// InputStreamReader(mConnection.getInputStream()));
-						//
-						// } catch (IOException e) {
-						// e.printStackTrace();
-						// }
+						catch (InterruptedException e1)
+						{
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 					}
-				}
-				catch (IOException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
 
-			//}
-			//finally
+					// try {
+					//
+					// this.input = new BufferedReader(new
+					// InputStreamReader(mConnection.getInputStream()));
+					//
+					// } catch (IOException e) {
+					// e.printStackTrace();
+					// }
+				}
+			}
+			catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			// }
+			// finally
 			{
 				try
 				{
@@ -251,41 +252,41 @@ public class Server extends Thread
 				}
 			}
 		}
-		
+
 		private void setConection(String id1, String id2)
 		{
 			String con = readFile("persoane-conexiuni.txt");
-			
+
 			String[] conections = con.split("\n");
 			String newFileString = "";
-			
+
 			boolean found = false;
-			for(int i = 0; i < conections.length; i++)
+			for (int i = 0; i < conections.length; i++)
 			{
 				String[] items = conections[i].split(" ");
-				if(items.length > 2)
+				if (items.length > 2)
 				{
-					//daca 2 are pe 1, atunci pun si pe 1 ca are pe 2 
-					if(items[2].equals("0") == true)
+					// daca 2 are pe 1, atunci pun si pe 1 ca are pe 2
+					if (items[2].equals("0") == true)
 					{
-						if(items[1].equals(id1) == true && items[0].equals(id2) == true)
+						if (items[1].equals(id1) == true && items[0].equals(id2) == true)
 						{
 							items[2] = "1";
 							found = true;
-//							break;
+							// break;
 						}
 					}
 					newFileString += items[0] + " " + items[1] + " " + items[2] + "\n";
 				}
 			}
-			
-			if(found == false)
+
+			if (found == false)
 			{
 				newFileString += id1 + " " + id2 + " " + "0" + "\n";
 			}
 			writeFile("persoane-conexiuni.txt", newFileString);
 		}
-		
+
 		public String getClientID()
 		{
 			return mCurrentClientID;
@@ -337,11 +338,13 @@ public class Server extends Thread
 					// daca e cumva id-ul meu pe aici
 					if (userProperties[0].equals(myID) == true)
 					{
-						friends += "2 " + getMyFriend(userProperties[1]) + '\n';
+						//friends += "2 " + getMyFriend(userProperties[1]) + '\n';
+						friends += getMyFriend(userProperties[1]) + " 2" + '\n';
 					}
 					else if (userProperties[1].equals(myID) == true)
 					{
-						friends += "2 " + getMyFriend(userProperties[0]) + '\n';
+						//friends += "2 " + getMyFriend(userProperties[0]) + '\n';
+						friends += getMyFriend(userProperties[0]) + " 2" + '\n';
 					}
 				}
 				else
@@ -349,13 +352,15 @@ public class Server extends Thread
 					// daca eu il am pe el
 					if (userProperties[0].equals(myID) == true)
 					{
-						friends += "0 " + getMyFriend(userProperties[1]) + '\n';
+						//friends += "0 " + getMyFriend(userProperties[1]) + '\n';
+						friends += getMyFriend(userProperties[1]) + " 0" + '\n';
 					}
 					else
 					// daca el ma are pe mine
 					if (userProperties[1].equals(myID) == true)
 					{
-						friends += "1 " + getMyFriend(userProperties[0]) + '\n';
+						//friends += "1 " + getMyFriend(userProperties[0]) + '\n';
+						friends += getMyFriend(userProperties[0]) + " 1" + '\n';
 					}
 				}
 			}
@@ -459,16 +464,16 @@ public class Server extends Thread
 		}
 		return fullText;
 	}
-	
+
 	public static void writeFile(String fileName, String text)
 	{
-		if(text.length() > 0 && text.charAt(text.length() - 1) == '\n')
+		if (text.length() > 0 && text.charAt(text.length() - 1) == '\n')
 		{
 			StringBuilder sb = new StringBuilder(text);
 			sb.deleteCharAt(text.length() - 1);
 			text = sb.toString();
 		}
-		
+
 		PrintWriter writer = null;
 		try
 		{
@@ -487,5 +492,29 @@ public class Server extends Thread
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public static byte[] extractBytes(String ImageName)
+	{
+		try
+		{
+			// open image
+			File imgPath = new File(ImageName);
+			BufferedImage bufferedImage;
+			bufferedImage = ImageIO.read(imgPath);
+
+			// get DataBufferBytes from Raster
+			WritableRaster raster = bufferedImage.getRaster();
+			DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
+
+			return (data.getData());
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 }
