@@ -1,9 +1,11 @@
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -338,12 +340,14 @@ public class Server extends Thread
 					// daca e cumva id-ul meu pe aici
 					if (userProperties[0].equals(myID) == true)
 					{
-						//friends += "2 " + getMyFriend(userProperties[1]) + '\n';
+						// friends += "2 " + getMyFriend(userProperties[1]) +
+						// '\n';
 						friends += getMyFriend(userProperties[1]) + " 2" + '\n';
 					}
 					else if (userProperties[1].equals(myID) == true)
 					{
-						//friends += "2 " + getMyFriend(userProperties[0]) + '\n';
+						// friends += "2 " + getMyFriend(userProperties[0]) +
+						// '\n';
 						friends += getMyFriend(userProperties[0]) + " 2" + '\n';
 					}
 				}
@@ -352,14 +356,16 @@ public class Server extends Thread
 					// daca eu il am pe el
 					if (userProperties[0].equals(myID) == true)
 					{
-						//friends += "0 " + getMyFriend(userProperties[1]) + '\n';
+						// friends += "0 " + getMyFriend(userProperties[1]) +
+						// '\n';
 						friends += getMyFriend(userProperties[1]) + " 0" + '\n';
 					}
 					else
 					// daca el ma are pe mine
 					if (userProperties[1].equals(myID) == true)
 					{
-						//friends += "1 " + getMyFriend(userProperties[0]) + '\n';
+						// friends += "1 " + getMyFriend(userProperties[0]) +
+						// '\n';
 						friends += getMyFriend(userProperties[0]) + " 1" + '\n';
 					}
 				}
@@ -377,6 +383,7 @@ public class Server extends Thread
 				String[] properties = persoane[i].split(" ");
 				if (properties[0].equals(friendID) == true)
 				{
+					persoane[i] += " " + extractBytes(friendID + ".jpg");
 					return persoane[i];
 				}
 			}
@@ -385,7 +392,22 @@ public class Server extends Thread
 
 		String getListOfPeopleGoingToEvent(String eventID)
 		{
-			return readFile("Events/event" + eventID + "/event-persoane.txt");
+			String peopleGoingToEvent = readFile("Events/event" + eventID + "/event-persoane.txt");
+
+			String[] people = peopleGoingToEvent.split("\n");
+
+			String allPeople = "";
+
+			for (int i = 0; i < people.length; i++)
+			{
+				String[] properties = people[i].split(" ");
+				people[i] += " " + extractBytes(properties[0] + ".jpg");
+
+				allPeople += people[i] + "\n";
+			}
+			return allPeople;
+			// return readFile("Events/event" + eventID +
+			// "/event-persoane.txt");
 		}
 
 		String getListOfCompaniesGoingToEvent(String eventID)
@@ -405,6 +427,7 @@ public class Server extends Thread
 
 				if (userProperties[0].equals(myID) == true)
 				{
+					users[i] += " " + extractBytes(myID + ".jpg");
 					return users[i];
 				}
 			}
@@ -494,27 +517,78 @@ public class Server extends Thread
 		}
 	}
 
-	public static byte[] extractBytes(String ImageName)
+	public static String extractBytes(String ImageName)
 	{
-		try
+		return "1110100";
+//		try
+//		{
+//			// open image
+//			File imgPath = new File(ImageName);
+//			BufferedImage bufferedImage;
+//			bufferedImage = ImageIO.read(imgPath);
+//
+//			// get DataBufferBytes from Raster
+//			WritableRaster raster = bufferedImage.getRaster();
+//			DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
+//
+//			byte[] bytes = data.getData();
+//			
+//
+//			String text = Base64.getEncoder().encodeToString(bytes);;//new String(bytes, "utf-8");
+//
+////			for (int i = 0; i < bytes.length; i++)
+////			{
+////				text += bytes[i];
+////			}
+//			
+//			System.out.println(text);
+//
+//			return text;//new String(bytes, "utf-8");//text;//(data.getData());
+//		}
+//		catch (IOException e)
+//		{
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
+//		return null;
+	}
+	
+//	BufferedImage buf_image; // this is BufferedImage reference you got after converting it from Image
+//	byte[] imageByteArray = bufferedImageToByteArray(buf_image,"jpg");
+
+	public static byte[] bufferedImageToByteArray()//BufferedImage image, String format)
+	{
+//		Image image = new Image("asd");
+	    try
 		{
-			// open image
-			File imgPath = new File(ImageName);
-			BufferedImage bufferedImage;
-			bufferedImage = ImageIO.read(imgPath);
-
-			// get DataBufferBytes from Raster
-			WritableRaster raster = bufferedImage.getRaster();
-			DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
-
-			return (data.getData());
+	    	String format = "jpg";
+	    	String path = "0.jpg";
+	        File file = new File(path);
+	        BufferedImage image2 = ImageIO.read(file);
+        
+		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(image2, format, baos);
+			
+			String text = String.valueOf(baos.toByteArray());
+			
+//			for(int i = 0 ; i < baos.toByteArray().; i++)
+			{
+//				System.out.println(baos.toByteArray()[i]);
+			}
+			String str = new String(baos.toByteArray(), "UTF-8"); // for UTF-8 encoding
+			
+//			System.out.println(baos.toByteArray().length);
+//			System.out.println(str);
+			
+		    return baos.toByteArray();
 		}
 		catch (IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return null;
+	    return null;
 	}
+
 }
