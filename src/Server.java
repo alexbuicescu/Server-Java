@@ -187,6 +187,20 @@ public class Server extends Thread
 									sendMessageString = logMeIn(myEmail, myPassword);
 								}
 							}
+							else if (read.charAt(0) == '6')
+							{
+								if (elements.length > 6)
+								{
+									String myEmail = elements[1];
+									String myCompany = elements[2];
+									String myJob = elements[3];
+									String myPhone = elements[4];
+									String myPassword = elements[5];
+									String myName = elements[6];
+
+									sendMessageString = RegisterMe(myEmail, myCompany, myJob, myPhone, myPassword, myName);
+								}
+							}
 							else if (read.charAt(0) == 'c' && elements.length > 1)
 							{
 								sendMessageString = "trebuie sa scriu cartea de vizita de la: " + elements[1];
@@ -253,6 +267,33 @@ public class Server extends Thread
 					e.printStackTrace();
 				}
 			}
+		}
+
+		private String RegisterMe(String myEmail, String myCompany, String myJob, String myPhone, String myPassword, String myName)
+		{
+			String persoaneDejaInregistrate = readFile("persoane.txt");
+			String[] persoane = persoaneDejaInregistrate.split("\n");
+			String lastID = "";
+			
+			for(int i = 0; i < persoane.length; i++)
+			{
+				String[] properties = persoane[i].split(" ");
+				lastID = properties[0];
+				
+				if(properties[1].equals(myEmail) == true)
+				{
+					return "n";
+				}
+			}
+			
+			persoaneDejaInregistrate += String.valueOf(Integer.parseInt(lastID) + 1) + " " +
+										myEmail + " " + myCompany + " " + myJob + " " + myPhone + " " + myPassword + " " + myName;
+			
+			writeFile("persoane.txt", persoaneDejaInregistrate);
+			
+			// TODO Auto-generated method stub
+			return "yes " + String.valueOf(Integer.parseInt(lastID) + 1) + " " + myEmail + " " + myCompany + " " + 
+									myJob + " " + myPhone + " " + myPassword + " " + myName;
 		}
 
 		private void setConection(String id1, String id2)
@@ -370,14 +411,18 @@ public class Server extends Thread
 					}
 				}
 			}
+			if(friends.equals("") == true)
+			{
+				return "null";
+			}
 			return friends;
 		}
 
-		String toatePersoanele = readFile("persoane.txt");
+		//String toatePersoanele = readFile("persoane.txt");
 
 		private String getMyFriend(String friendID)
 		{
-			String[] persoane = toatePersoanele.split("\n");
+			String[] persoane = readFile("persoane.txt").split("\n");
 			for (int i = 0; i < persoane.length; i++)
 			{
 				String[] properties = persoane[i].split(" ");
@@ -417,7 +462,7 @@ public class Server extends Thread
 
 		String getMyCredentials(String myID)
 		{
-			String dataBase = toatePersoanele;// readFile("persoane.txt");
+			String dataBase = readFile("persoane.txt");
 
 			String[] users = dataBase.split("\n");
 
@@ -437,7 +482,7 @@ public class Server extends Thread
 
 		String logMeIn(String myEmail, String myPassword)
 		{
-			String dataBase = toatePersoanele;// readFile("persoane.txt");
+			String dataBase = readFile("persoane.txt");
 
 			String[] users = dataBase.split("\n");
 
