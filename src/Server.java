@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 
 import javax.imageio.ImageIO;
 
@@ -154,33 +156,31 @@ public class Server extends Thread
 
 							if(read.charAt(0) == 'a')
 							{
-								sendMessageString = getAvatar(elements[1]);
+								//byte[] avatar = getAvatar(elements[1]);
+								sendAvatar(elements[1]);//avatar, 0, avatar.length);
+								send  = false;
 							}
 							else if (read.charAt(0) == '0')
 							{
 								sendMessageString = getListOfEvents(elements[1]);
-								//send = false;
 							}
 							else if (read.charAt(0) == '1')
 							{
 								String myID = elements[1];
 
 								sendMessageString = getListOfMyFriends(myID);
-								send = false;
 							}
 							else if (read.charAt(0) == '2')
 							{
 								String eventID = elements[1];
 
 								sendMessageString = getListOfPeopleGoingToEvent(eventID);
-								//send = false;
 							}
 							else if (read.charAt(0) == '3')
 							{
 								String eventID = elements[1];
 
 								sendMessageString = getListOfCompaniesGoingToEvent(eventID);
-								//send = false;
 							}
 							else if (read.charAt(0) == '4')
 							{
@@ -232,7 +232,10 @@ public class Server extends Thread
 								sendMessageString = "am primit id-ul";
 							}
 
-							sendMessage(sendMessageString);
+							if(send == true)
+							{
+								sendMessage(sendMessageString);
+							}
 						}
 
 						try
@@ -281,9 +284,10 @@ public class Server extends Thread
 			}
 		}
 
-		private String getAvatar(String userID)
+		private byte[] getAvatar(String userID)
 		{
-			return userID + ".png";
+			return extractBytes(userID + ".jpg");
+			//return userID + ".png";
 		}
 
 		private String RegisterMe(String myEmail, String myCompany, String myJob, String myPhone, String myPassword, String myName)
@@ -368,6 +372,58 @@ public class Server extends Thread
 			out.println(msg);
 
 			String serverName = "Server to Client #" + mCurrentClientNumber + ": " + msg + '\n';
+			System.err.println("am trimis: " + serverName);
+			ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + serverName);
+		}
+
+		void sendAvatar(String fileName)//byte[] myByteArray, int start, int len)
+		{
+			FileInputStream fis = null;
+			try
+			{
+				fis = new FileInputStream(fileName + ".jpg");
+				byte[] buffer = new byte[fis.available()];
+				fis.read(buffer);
+				ObjectOutputStream oos = new ObjectOutputStream(mConnection.getOutputStream()) ;
+				oos.writeObject(buffer);
+			}
+			catch (FileNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+
+			/*try
+			{
+				if (len < 0)
+					throw new IllegalArgumentException("Negative length not allowed");
+				if (start < 0 || start >= myByteArray.length)
+					throw new IndexOutOfBoundsException("Out of bounds: " + start);
+				// Other checks if needed.
+
+				// May be better to save the streams in the support class;
+				// just like the socket variable.
+				System.out.println("avatar: inainte de outputstream");
+				OutputStream out = mConnection.getOutputStream();
+				DataOutputStream dos = new DataOutputStream(out);
+
+				System.out.println("avatar: inainte de writeInt");
+				dos.writeInt(len);
+
+				System.out.println("avatar: inainte de write: " + len);
+				if (len > 0) {
+					dos.write(myByteArray, start, len);
+				}
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}*/
+
+			String serverName = "Server to Client #" + mCurrentClientNumber + ": am trimis avatarul: ";//+ start + " " + len + '\n';
 			System.err.println("am trimis: " + serverName);
 			ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + serverName);
 		}
@@ -618,43 +674,29 @@ public class Server extends Thread
 		}
 	}
 
-	public static String extractBytes(String ImageName)
+	public byte[] extractBytes (String ImageName)
 	{
-		return "1110100";
-//		try
-//		{
-//			// open image
-//			File imgPath = new File(ImageName);
-//			BufferedImage bufferedImage;
-//			bufferedImage = ImageIO.read(imgPath);
-//
-//			// get DataBufferBytes from Raster
-//			WritableRaster raster = bufferedImage.getRaster();
-//			DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
-//
-//			byte[] bytes = data.getData();
-//			
-//
-//			String text = Base64.getEncoder().encodeToString(bytes);;//new String(bytes, "utf-8");
-//
-////			for (int i = 0; i < bytes.length; i++)
-////			{
-////				text += bytes[i];
-////			}
-//			
-//			System.out.println(text);
-//
-//			return text;//new String(bytes, "utf-8");//text;//(data.getData());
-//		}
-//		catch (IOException e)
-//		{
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try
+		{
+			// open image
+			File imgPath = new File(ImageName);
+			BufferedImage bufferedImage = null;
 
-//		return null;
+			bufferedImage = ImageIO.read(imgPath);
+
+			// get DataBufferBytes from Raster
+			WritableRaster raster = bufferedImage.getRaster();
+			DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
+
+			return (data.getData());
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
-	
+
 //	BufferedImage buf_image; // this is BufferedImage reference you got after converting it from Image
 //	byte[] imageByteArray = bufferedImageToByteArray(buf_image,"jpg");
 
