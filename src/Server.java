@@ -29,6 +29,7 @@ public class Server extends Thread
 			serverPort = _serverPort;
 			providerSocket = new ServerSocket(_serverPort, 1000);
 			initServer = true;
+			System.out.println("Server started on " + serverPort);
 		}
 		catch (IOException e)
 		{
@@ -131,6 +132,8 @@ public class Server extends Thread
 						if (read != null && read.length() > 0 && read.equals("null") == false)
 						{
 							String sendMessageString = "nu am gasit nimic";
+							//send este false daca trebuie sa trimit o lista de obiecte la care pentru fiecare obiect am de trimis o imagine
+							boolean send = true;
 
 							System.out.println("am citit: " + read);
 							ServerulMeu.chatTextArea.setText(ServerulMeu.chatTextArea.getText() + "Client #" + mCurrentClientNumber + ": " + read + '\n');
@@ -149,27 +152,35 @@ public class Server extends Thread
 							}
 							String[] elements = read.split(" ");
 
-							if (read.charAt(0) == '0')
+							if(read.charAt(0) == 'a')
+							{
+								sendMessageString = getAvatar(elements[1]);
+							}
+							else if (read.charAt(0) == '0')
 							{
 								sendMessageString = getListOfEvents(elements[1]);
+								//send = false;
 							}
 							else if (read.charAt(0) == '1')
 							{
 								String myID = elements[1];
 
 								sendMessageString = getListOfMyFriends(myID);
+								send = false;
 							}
 							else if (read.charAt(0) == '2')
 							{
 								String eventID = elements[1];
 
 								sendMessageString = getListOfPeopleGoingToEvent(eventID);
+								//send = false;
 							}
 							else if (read.charAt(0) == '3')
 							{
 								String eventID = elements[1];
 
 								sendMessageString = getListOfCompaniesGoingToEvent(eventID);
+								//send = false;
 							}
 							else if (read.charAt(0) == '4')
 							{
@@ -220,6 +231,7 @@ public class Server extends Thread
 
 								sendMessageString = "am primit id-ul";
 							}
+
 							sendMessage(sendMessageString);
 						}
 
@@ -267,6 +279,11 @@ public class Server extends Thread
 					e.printStackTrace();
 				}
 			}
+		}
+
+		private String getAvatar(String userID)
+		{
+			return userID + ".png";
 		}
 
 		private String RegisterMe(String myEmail, String myCompany, String myJob, String myPhone, String myPassword, String myName)
@@ -368,8 +385,10 @@ public class Server extends Thread
 
 			String friends = "";
 
+
 			for (int i = 0; i < users.length; i++)
 			{
+				String currentFriend = "";
 				// 0 - doar eu il am
 				// 1 - doar el ma are
 				// 2 - ne avem amandoi
@@ -384,12 +403,14 @@ public class Server extends Thread
 						// friends += "2 " + getMyFriend(userProperties[1]) +
 						// '\n';
 						friends += getMyFriend(userProperties[1]) + " 2" + '\n';
+						currentFriend = getMyFriend(userProperties[1]) + " 2" + '\n';
 					}
 					else if (userProperties[1].equals(myID) == true)
 					{
 						// friends += "2 " + getMyFriend(userProperties[0]) +
 						// '\n';
 						friends += getMyFriend(userProperties[0]) + " 2" + '\n';
+						currentFriend = getMyFriend(userProperties[0]) + " 2" + '\n';
 					}
 				}
 				else
@@ -437,9 +458,37 @@ public class Server extends Thread
 
 		String getListOfPeopleGoingToEvent(String eventID)
 		{
-			String peopleGoingToEvent = readFile("Events/event" + eventID + "/event-persoane.txt");
+			String peopleGTE = readFile("Events/event" + eventID + "/event-persoane.txt");
+			String peopleALL = readFile("persoane.txt");
 
-			String[] people = peopleGoingToEvent.split("\n");
+			String[] people = peopleGTE.split(" ");
+			String[] peopleA = peopleALL.split("\n");
+			
+			String peopleGoingToEvent = "";
+			System.out.println(people.length + "; " + peopleA.length);
+			
+			for(int j = 0; j < people.length; j++)
+			{
+				for(int i = 0; i < peopleA.length; i++)
+				{
+					String[] properties = peopleA[i].split(" ");
+
+					System.err.println(i + "; " + j + " @ " + people[j] + ": " + properties[0]);
+					if(properties[0].equals(people[j]) == true)
+					{
+						if(peopleGoingToEvent.equals("") == false)
+						{
+							peopleGoingToEvent += "\n" + peopleA[i];
+						}
+						else
+						{
+							peopleGoingToEvent = peopleA[i];
+						}
+						peopleGoingToEvent += " " + extractBytes(properties[0] + ".jpg");
+						break;
+					}
+				}
+			}
 
 			String allPeople = "";
 
@@ -450,7 +499,7 @@ public class Server extends Thread
 
 				allPeople += people[i] + "\n";
 			}
-			return allPeople;
+			return peopleGoingToEvent;//allPeople;
 			// return readFile("Events/event" + eventID +
 			// "/event-persoane.txt");
 		}
@@ -524,6 +573,13 @@ public class Server extends Thread
 			while ((line = reader.readLine()) != null)
 			{
 				fullText += line + '\n';
+			}
+
+			if(fullText.length() > 0)
+			{
+				StringBuilder sb = new StringBuilder(fullText);
+				sb.deleteCharAt(fullText.length() - 1);
+				fullText = sb.toString();
 			}
 		}
 		catch (IOException e)
