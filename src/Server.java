@@ -117,7 +117,7 @@ public class Server extends Thread
 			{
 				// this.input = new BufferedReader(new
 				// InputStreamReader(mConnection.getInputStream()));
-				while ((this.input = new BufferedReader(new InputStreamReader(mConnection.getInputStream()))) != null)
+				while (mConnection.isConnected() == true && (this.input = new BufferedReader(new InputStreamReader(mConnection.getInputStream()))) != null)
 				{
 					try
 					{
@@ -157,6 +157,8 @@ public class Server extends Thread
 							if(read.charAt(0) == 'a')
 							{
 								//byte[] avatar = getAvatar(elements[1]);
+								sendMessage("avatar");
+								Thread.sleep(10);
 								sendAvatar(elements[1]);//avatar, 0, avatar.length);
 								send  = false;
 							}
@@ -249,6 +251,10 @@ public class Server extends Thread
 						}
 					}
 					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+					catch (InterruptedException e)
 					{
 						e.printStackTrace();
 					}
