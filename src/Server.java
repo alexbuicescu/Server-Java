@@ -122,14 +122,18 @@ public class Server extends Thread
 					try
 					{
 						String read = "";
-						// try
-						// {
-						read = input.readLine();
-						// }
-						// catch(Exception ex)
-						// {
-						// continue;
-						// }
+						try
+						{
+							read = input.readLine();
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+						catch(Exception ex)
+						{
+							continue;
+						}
 
 						if (read != null && read.length() > 0 && read.equals("null") == false)
 						{
@@ -249,10 +253,6 @@ public class Server extends Thread
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
-					}
-					catch (IOException e)
-					{
-						e.printStackTrace();
 					}
 					catch (InterruptedException e)
 					{
@@ -393,12 +393,38 @@ public class Server extends Thread
 				ObjectOutputStream oos = new ObjectOutputStream(mConnection.getOutputStream()) ;
 				oos.writeObject(buffer);
 			}
-			catch (FileNotFoundException e)
+			/*catch (FileNotFoundException e)
 			{
 				e.printStackTrace();
 			}
 			catch (IOException e)
 			{
+				e.printStackTrace();
+			}*/
+			catch (Exception e)
+			{
+				try
+				{
+					if(fileName.length() > 0 && fileName.charAt(0) == 'c')
+					{
+						fis = new FileInputStream("placeholder_flyer_company.jpg");
+					}
+					else
+					{
+						fis = new FileInputStream("placeholder_avatar_user.jpg");
+					}
+					byte[] buffer = new byte[fis.available()];
+					fis.read(buffer);
+					ObjectOutputStream oos = new ObjectOutputStream(mConnection.getOutputStream());
+					oos.writeObject(buffer);
+				}
+				catch(Exception ex)
+				{
+
+				}
+
+
+
 				e.printStackTrace();
 			}
 
