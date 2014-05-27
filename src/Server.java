@@ -407,7 +407,7 @@ public class Server extends Thread
 				{
 					if(fileName.length() > 0 && fileName.charAt(0) == 'c')
 					{
-						fis = new FileInputStream("placeholder_flyer_company.jpg");
+						fis = new FileInputStream("placeholder_flyer_company2.jpg");
 					}
 					else
 					{
@@ -587,7 +587,8 @@ public class Server extends Thread
 
 				allPeople += people[i] + "\n";
 			}
-			return peopleGoingToEvent;//allPeople;
+			return peopleALL;
+			//return peopleGoingToEvent;//allPeople;
 			// return readFile("Events/event" + eventID +
 			// "/event-persoane.txt");
 		}
