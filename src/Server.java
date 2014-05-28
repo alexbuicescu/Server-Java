@@ -384,6 +384,42 @@ public class Server extends Thread
 
 		void sendAvatar(String fileName)//byte[] myByteArray, int start, int len)
 		{
+			String nrCompanii = readFile("nrCompanii.txt");
+			String newNR = "";
+
+			String[] comp = nrCompanii.split("\n");
+			boolean found = false;
+			for(String companie : comp)
+			{
+				String[] props = companie.split(" ");
+				if(props.length > 1)
+				{
+					if (props[0].equals(fileName) == true)
+					{
+						props[1] = String.valueOf(Integer.parseInt(props[1]) + 1);
+						found = true;
+					}
+
+					if (newNR.equals("") == false)
+					{
+						newNR += '\n';
+					}
+
+					newNR += props[0] + " " + props[1];
+				}
+			}
+			if(found == false)
+			{
+				if(newNR.equals("") == false)
+				{
+					newNR += '\n';
+				}
+				newNR += fileName + " " + "1";
+			}
+			writeFile("nrCompanii.txt", newNR);
+
+
+
 			FileInputStream fis = null;
 			try
 			{
@@ -555,14 +591,14 @@ public class Server extends Thread
 			String peopleGoingToEvent = "";
 			System.out.println(people.length + "; " + peopleA.length);
 			
-			for(int j = 0; j < people.length; j++)
+			//for(int j = 0; j < people.length; j++)
 			{
 				for(int i = 0; i < peopleA.length; i++)
 				{
 					String[] properties = peopleA[i].split(" ");
 
-					System.err.println(i + "; " + j + " @ " + people[j] + ": " + properties[0]);
-					if(properties[0].equals(people[j]) == true)
+					//System.err.println(i + "; " + j + " @ " + people[j] + ": " + properties[0]);
+					//if(properties[0].equals(people[j]) == true)
 					{
 						if(peopleGoingToEvent.equals("") == false)
 						{
@@ -573,7 +609,7 @@ public class Server extends Thread
 							peopleGoingToEvent = peopleA[i];
 						}
 						peopleGoingToEvent += " " + extractBytes(properties[0] + ".jpg");
-						break;
+						//break;
 					}
 				}
 			}
@@ -587,8 +623,8 @@ public class Server extends Thread
 
 				allPeople += people[i] + "\n";
 			}
-			return peopleALL;
-			//return peopleGoingToEvent;//allPeople;
+			//return peopleALL;
+			return peopleGoingToEvent;//allPeople;
 			// return readFile("Events/event" + eventID +
 			// "/event-persoane.txt");
 		}
